@@ -18,7 +18,7 @@ pip install -r requirements.txt
 3. Clique com o botão direito no arquivo "Token.env", e escolha "Abrir com", então abra no seu bloco de notas e você terá que substituir o texto "seu_token_aqui" pelo token que você irá gerar no telegram.
 BOT_TOKEN=seu_token_aqui
 
-4.Como criar o seu Token de Bot no Telegram:
+Como criar o seu Token de Bot no Telegram:
 Abra o Telegram e procure pelo usuário @BotFather.
 Inicie uma conversa e envie o comando /newbot
 Siga as instruções para criar seu bot (você precisará escolher um nome e um username único).
