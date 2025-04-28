@@ -1,9 +1,14 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
+from dotenv import load_dotenv
+import os
 import datetime
 import random
 
-TOKEN = ''
+# Carregar variáveis de ambiente
+load_dotenv()
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # Lista dos próximos jogos
 proximos_jogos = [
@@ -23,25 +28,20 @@ def saudacao():
     else:
         return "Boa noite!"
 
-# Criação do teclado principal
+# Teclado principal
 def teclado_principal():
-    keyboard = [
+    return InlineKeyboardMarkup([
         [InlineKeyboardButton("📅 Próximos Jogos", callback_data="proximos_jogos")],
         [InlineKeyboardButton("🎯 Line-up Atual", callback_data="lineup")],
         [InlineKeyboardButton("🏆 Ranking Atual", callback_data="ranking")],
-        [InlineKeyboardButton("💬 Torça com a FURIA", callback_data="mostre_sua_torcida")],
-    ]
-    return InlineKeyboardMarkup(keyboard)
+        [InlineKeyboardButton("💬 Torça com a FURIA", callback_data="mostre_sua_torcida")]
+    ])
 
-# Teclado de confirmação ("Deseja continuar?")
+# Teclado de confirmação
 def teclado_confirmacao():
-    keyboard = [
-        [
-            InlineKeyboardButton("👍 Sim", callback_data="continuar_sim"),
-            InlineKeyboardButton("👎 Não", callback_data="continuar_nao"),
-        ]
-    ]
-    return InlineKeyboardMarkup(keyboard)
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("👍 Sim", callback_data="continuar_sim"), InlineKeyboardButton("👎 Não", callback_data="continuar_nao")]
+    ])
 
 # Mensagem de boas-vindas
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -51,7 +51,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=teclado_principal()
     )
 
-# Tratamento dos botões principais
 # Tratamento dos botões principais
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -63,27 +62,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
     elif query.data == "lineup":
-        await query.message.reply_text(
-            "🎯 Line-up Atual da FURIA:\n- arT\n- yuurih\n- KSCERATO\n- chelo\n- FalleN"
-        )
+        await query.message.reply_text("🎯 Line-up Atual da FURIA:\n- arT\n- yuurih\n- KSCERATO\n- chelo\n- FalleN")
         await query.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
     elif query.data == "ranking":
-        await query.message.reply_text(
-            "🏆 Ranking Atual:\nFURIA está em 5º lugar no ranking mundial de CS:GO! 🔥"
-        )
+        await query.message.reply_text("🏆 Ranking Atual:\nFURIA está em 5º lugar no ranking mundial de CS:GO! 🔥")
         await query.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
     elif query.data == "mostre_sua_torcida":
         # Torcida aleatória
         torcida_variantes = [
-            "Vamos FURIA! 🖤💛 #DIADEFURIA",
-            "FURIA é vida! 🔥 Vamos, FURIA! 💪",
-            "Vai, FURIA! Vamos com tudo! 💥",
-            "FURIA! A equipe que nunca para de brilhar! 🌟",
-            "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
+            "Vamos FURIA! 🖤💛 #DIADEFURIA", "FURIA é vida! 🔥 Vamos, FURIA! 💪", "Vai, FURIA! Vamos com tudo! 💥",
+            "FURIA! A equipe que nunca para de brilhar! 🌟", "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
         ]
-        torcida_texto = random.choice(torcida_variantes)  # Torcida aleatória
+        torcida_texto = random.choice(torcida_variantes)
         await query.message.reply_text(f"📣 {torcida_texto}")
         await query.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
@@ -91,49 +83,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Selecione a opção que deseja:", reply_markup=teclado_principal())
 
     elif query.data == "continuar_nao":
-        # Envia a mensagem de agradecimento e o próximo jogo
         jogo_proximo = proximos_jogos[0]
         await query.message.reply_text(f"Nos vemos no próximo jogo:\n📅 {jogo_proximo['data']} - {jogo_proximo['oponente']} às {jogo_proximo['hora']}")
         await query.message.reply_text("Obrigado! Volte sempre para acompanhar a FURIA! 🖤💛")
-
-    elif query.data == "reiniciar":
-        await query.message.reply_text(
-            "👋 Reiniciando o chat!\nEscolha uma opção abaixo para interagir:",
-            reply_markup=teclado_principal()
-        )
-    elif query.data == "nao_reiniciar":
-        # Quando o usuário clicar em "Não", exibe a mensagem de agradecimento e o próximo jogo, sem repetir os botões
-        jogo_proximo = proximos_jogos[0]
-        await query.message.reply_text(f"Nos vemos no próximo jogo:\n📅 {jogo_proximo['data']} - {jogo_proximo['oponente']} às {jogo_proximo['hora']}")
-        await query.message.reply_text("Obrigado! Volte sempre para acompanhar a FURIA! 🖤💛")
-        
-    else:
-        # Se clicar errado, mostrar "Não" para o reinício
-        keyboard = [
-            [InlineKeyboardButton("🔄 Reiniciar Chat", callback_data="reiniciar")],
-            [InlineKeyboardButton("❌ Não", callback_data="nao_reiniciar")]  # Botão "Não" adicionado
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        await query.message.reply_text(
-            "❓ Não entendemos o que você quis dizer. Deseja reiniciar o chat?",
-            reply_markup=reply_markup
-        )
-
 
 # Função para tratar mensagens não reconhecidas
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Exibe os botões "Reiniciar Chat" e "Não"
     keyboard = [
         [InlineKeyboardButton("🔄 Reiniciar Chat", callback_data="reiniciar")],
-        [InlineKeyboardButton("❌ Não", callback_data="nao_reiniciar")]  # Botão "Não" adicionado
+        [InlineKeyboardButton("❌ Não", callback_data="nao_reiniciar")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(
-        "❓ Não entendemos o que você quis dizer. Deseja reiniciar o chat?",
-        reply_markup=reply_markup
-    )
+    await update.message.reply_text("❓ Não entendemos o que você quis dizer. Deseja reiniciar o chat?", reply_markup=reply_markup)
 
-# Configurar os comandos que aparecem no "/"
+# Configurar comandos
 async def configurar_comandos(application):
     comandos = [
         BotCommand(command="start", description="Iniciar o bot"),
@@ -151,58 +114,36 @@ async def comando_proximos_jogos(update: Update, context: ContextTypes.DEFAULT_T
     await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
 async def comando_lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🎯 Line-up Atual da FURIA:\n- arT\n- yuurih\n- KSCERATO\n- chelo\n- FalleN")
-    await update.message.reply_text("Deseja continuar?",
-        reply_markup=teclado_confirmacao()
-    )
+    await update.message.reply_text("🎯 Line-up Atual da FURIA:\n- arT\n- yuurih\n- KSCERATO\n- chelo\n- FalleN")
+    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
 async def comando_ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🏆 Ranking Atual:\nFURIA está em 5º lugar no ranking mundial de CS:GO! 🔥"),
-    await update.message.reply_text("Deseja continuar?",
-        reply_markup=teclado_confirmacao()
-    )
+    await update.message.reply_text("🏆 Ranking Atual:\nFURIA está em 5º lugar no ranking mundial de CS:GO! 🔥")
+    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
 async def comando_mostre_sua_torcida(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Torcida aleatória
     torcida_variantes = [
-        "Vamos FURIA! 🖤💛 #DIADEFURIA",
-        "FURIA é vida! 🔥 Vamos, FURIA! 💪",
-        "Vai, FURIA! Vamos com tudo! 💥",
-        "FURIA! A equipe que nunca para de brilhar! 🌟",
-        "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
+        "Vamos FURIA! 🖤💛 #DIADEFURIA", "FURIA é vida! 🔥 Vamos, FURIA! 💪", "Vai, FURIA! Vamos com tudo! 💥",
+        "FURIA! A equipe que nunca para de brilhar! 🌟", "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
     ]
-    torcida_texto = random.choice(torcida_variantes)  # Torcida aleatória
+    torcida_texto = random.choice(torcida_variantes)
     await update.message.reply_text(f"📣 {torcida_texto}")
     await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
-app = ApplicationBuilder().token(TOKEN).build()
-
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("proximosjogos", comando_proximos_jogos))
-app.add_handler(CommandHandler("lineup", comando_lineup))
-app.add_handler(CommandHandler("ranking", comando_ranking))
-app.add_handler(CommandHandler("mostresuatorcida", comando_mostre_sua_torcida))
-app.add_handler(CallbackQueryHandler(button_handler))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
-
-# Programa principal
+# Função principal
 async def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("proximosjogos", comando_proximos_jogos))
-    app.add_handler(CommandHandler("lineup", comando_lineup))
-    app.add_handler(CommandHandler("ranking", comando_ranking))
-    app.add_handler(CommandHandler("mostresuatorcida", comando_mostre_sua_torcida))
-    app.add_handler(CallbackQueryHandler(button_handler))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
-
-    await configurar_comandos(app)
-
+    application = ApplicationBuilder().token(BOT_TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("proximosjogos", comando_proximos_jogos))
+    application.add_handler(CommandHandler("lineup", comando_lineup))
+    application.add_handler(CommandHandler("ranking", comando_ranking))
+    application.add_handler(CommandHandler("mostresuatorcida", comando_mostre_sua_torcida))
+    application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    
+    await configurar_comandos(application)
     print("✅ Bot rodando...")
-    await app.run_polling()
+    await application.run_polling()
 
 if __name__ == "__main__":
     import nest_asyncio
