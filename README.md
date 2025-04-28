@@ -26,6 +26,3 @@ Ao final, o BotFather irá enviar o TOKEN do seu novo bot — copie e cole no ar
 
 5. Execute o bot utilizando o comando abaixo:
 python FuriaFanBot.py (Pode utilizar o terminal do Git, cmd, ou o próprio Visual Studio Code)
-
-## Autor
-João Eduardo
