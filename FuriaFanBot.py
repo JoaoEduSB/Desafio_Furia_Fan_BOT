@@ -52,11 +52,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     if query.data == "proximos_jogos":
-        if proximos_jogos:
-            jogos = "\n".join([f"📅 {jogo['data']} - {jogo['oponente']} às {jogo['hora']} ({jogo['torneio']})" for jogo in proximos_jogos])
-            await query.message.reply_text(f"📢 Próximos Jogos da FURIA:\n\n{jogos}")
-        else:
-            await query.message.reply_text("📢 Não há jogos programados no momento.")
+        await query.message.reply_text("📢 Não há jogos programados no momento.")
         await query.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
     elif query.data == "lineup":
@@ -68,10 +64,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
     elif query.data == "mostre_sua_torcida":
-        # Torcida aleatória
         torcida_variantes = [
-            "Vamos FURIA! 🖤💛 #DIADEFURIA", "FURIA é vida! 🔥 Vamos, FURIA! 💪", "Vai, FURIA! Vamos com tudo! 💥",
-            "FURIA! A equipe que nunca para de brilhar! 🌟", "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
+            "Vamos FURIA! 🖤💛 #DIADEFURIA", "FURIA é vida! 🔥 Vamos, FURIA! 💪",
+            "Vai, FURIA! Vamos com tudo! 💥", "FURIA! A equipe que nunca para de brilhar! 🌟",
+            "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
         ]
         torcida_texto = random.choice(torcida_variantes)
         await query.message.reply_text(f"📣 {torcida_texto}")
@@ -81,8 +77,30 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Selecione a opção que deseja:", reply_markup=teclado_principal())
 
     elif query.data == "continuar_nao":
-        # Caso não haja próximos jogos, só agradece
         await query.message.reply_text("Obrigado! Volte sempre para acompanhar a FURIA! 🖤💛")
+
+# Funções específicas para cada comando digitado
+async def comando_proximos_jogos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("📢 Não há jogos programados no momento.")
+    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
+
+async def comando_lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🎯 Line-up Atual da FURIA:\n- arT\n- yuurih\n- KSCERATO\n- chelo\n- FalleN")
+    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
+
+async def comando_ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("🏆 Ranking Atual:\nFURIA está em 5º lugar no ranking mundial de CS:GO! 🔥")
+    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
+
+async def comando_mostre_sua_torcida(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    torcida_variantes = [
+        "Vamos FURIA! 🖤💛 #DIADEFURIA", "FURIA é vida! 🔥 Vamos, FURIA! 💪",
+        "Vai, FURIA! Vamos com tudo! 💥", "FURIA! A equipe que nunca para de brilhar! 🌟",
+        "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
+    ]
+    torcida_texto = random.choice(torcida_variantes)
+    await update.message.reply_text(f"📣 {torcida_texto}")
+    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
 # Função para tratar mensagens não reconhecidas
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -108,10 +126,10 @@ async def configurar_comandos(application):
 async def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("proximosjogos", button_handler))  # Alterado para utilizar o mesmo handler
-    application.add_handler(CommandHandler("lineup", button_handler))  # Alterado para utilizar o mesmo handler
-    application.add_handler(CommandHandler("ranking", button_handler))  # Alterado para utilizar o mesmo handler
-    application.add_handler(CommandHandler("mostresuatorcida", button_handler))  # Alterado para utilizar o mesmo handler
+    application.add_handler(CommandHandler("proximosjogos", comando_proximos_jogos))
+    application.add_handler(CommandHandler("lineup", comando_lineup))
+    application.add_handler(CommandHandler("ranking", comando_ranking))
+    application.add_handler(CommandHandler("mostresuatorcida", comando_mostre_sua_torcida))
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
 
