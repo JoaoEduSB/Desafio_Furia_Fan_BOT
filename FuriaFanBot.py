@@ -10,13 +10,8 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# Lista dos próximos jogos
-proximos_jogos = [
-    {"data": "28/04/2025", "oponente": "Team Liquid", "hora": "18:00"},
-    {"data": "01/05/2025", "oponente": "Astralis", "hora": "20:00"},
-    {"data": "03/05/2025", "oponente": "Navi", "hora": "15:00"},
-    {"data": "04/05/2025", "oponente": "FaZe Clan", "hora": "19:00"},
-]
+# Lista dos próximos jogos (sem jogos programados)
+proximos_jogos = []
 
 # Função para obter a saudação com base no horário
 def saudacao():
@@ -57,8 +52,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     if query.data == "proximos_jogos":
-        jogos = "\n".join([f"📅 {jogo['data']} - {jogo['oponente']} às {jogo['hora']}" for jogo in proximos_jogos])
-        await query.message.reply_text(f"📢 Próximos Jogos da FURIA até 04/05/2025:\n\n{jogos}")
+        if proximos_jogos:
+            jogos = "\n".join([f"📅 {jogo['data']} - {jogo['oponente']} às {jogo['hora']} ({jogo['torneio']})" for jogo in proximos_jogos])
+            await query.message.reply_text(f"📢 Próximos Jogos da FURIA:\n\n{jogos}")
+        else:
+            await query.message.reply_text("📢 Não há jogos programados no momento.")
         await query.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
 
     elif query.data == "lineup":
@@ -83,8 +81,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("Selecione a opção que deseja:", reply_markup=teclado_principal())
 
     elif query.data == "continuar_nao":
-        jogo_proximo = proximos_jogos[0]
-        await query.message.reply_text(f"Nos vemos no próximo jogo:\n📅 {jogo_proximo['data']} - {jogo_proximo['oponente']} às {jogo_proximo['hora']}")
+        # Caso não haja próximos jogos, só agradece
         await query.message.reply_text("Obrigado! Volte sempre para acompanhar a FURIA! 🖤💛")
 
 # Função para tratar mensagens não reconhecidas
@@ -107,40 +104,17 @@ async def configurar_comandos(application):
     ]
     await application.bot.set_my_commands(comandos)
 
-# Comandos via "/"
-async def comando_proximos_jogos(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    jogos = "\n".join([f"📅 {jogo['data']} - {jogo['oponente']} às {jogo['hora']}" for jogo in proximos_jogos])
-    await update.message.reply_text(f"📢 Próximos Jogos da FURIA até 04/05/2025:\n\n{jogos}")
-    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
-
-async def comando_lineup(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🎯 Line-up Atual da FURIA:\n- arT\n- yuurih\n- KSCERATO\n- chelo\n- FalleN")
-    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
-
-async def comando_ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🏆 Ranking Atual:\nFURIA está em 5º lugar no ranking mundial de CS:GO! 🔥")
-    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
-
-async def comando_mostre_sua_torcida(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    torcida_variantes = [
-        "Vamos FURIA! 🖤💛 #DIADEFURIA", "FURIA é vida! 🔥 Vamos, FURIA! 💪", "Vai, FURIA! Vamos com tudo! 💥",
-        "FURIA! A equipe que nunca para de brilhar! 🌟", "FURIA, a força do Brasil! 🇧🇷🔥 Vamos FURIA!"
-    ]
-    torcida_texto = random.choice(torcida_variantes)
-    await update.message.reply_text(f"📣 {torcida_texto}")
-    await update.message.reply_text("Deseja continuar?", reply_markup=teclado_confirmacao())
-
 # Função principal
 async def main():
     application = ApplicationBuilder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("proximosjogos", comando_proximos_jogos))
-    application.add_handler(CommandHandler("lineup", comando_lineup))
-    application.add_handler(CommandHandler("ranking", comando_ranking))
-    application.add_handler(CommandHandler("mostresuatorcida", comando_mostre_sua_torcida))
+    application.add_handler(CommandHandler("proximosjogos", button_handler))  # Alterado para utilizar o mesmo handler
+    application.add_handler(CommandHandler("lineup", button_handler))  # Alterado para utilizar o mesmo handler
+    application.add_handler(CommandHandler("ranking", button_handler))  # Alterado para utilizar o mesmo handler
+    application.add_handler(CommandHandler("mostresuatorcida", button_handler))  # Alterado para utilizar o mesmo handler
     application.add_handler(CallbackQueryHandler(button_handler))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
-    
+
     await configurar_comandos(application)
     print("✅ Bot rodando...")
     await application.run_polling()
